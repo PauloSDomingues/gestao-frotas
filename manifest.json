@@ -1,0 +1,19 @@
+{
+  "name": "VistoriaFrotas | Gestão de Frotas",
+  "short_name": "VistoriaFrotas",
+  "description": "Sistema local de gestão e vistoria de frotas.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fa",
+  "theme_color": "#123b5d",
+  "icons": [
+    {
+      "src": "./assets/images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123b5d">
+  <meta name="description" content="Sistema de gestão e vistoria de frotas.">
+  <title>VistoriaFrotas | Gestão de Frotas</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./assets/images/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#dashboard" aria-label="VistoriaFrotas, início">
+        <span class="brand-mark">VF</span>
+        <span class="brand-copy"><strong>VistoriaFrotas</strong><small>Gestão de frota</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a class="nav-link active" href="#dashboard" data-page="dashboard"><span class="nav-icon">▦</span> Visão geral</a>
+        <a class="nav-link" href="#vehicles" data-page="vehicles"><span class="nav-icon">▣</span> Veículos</a>
+        <a class="nav-link" href="#inspections" data-page="inspections"><span class="nav-icon">✓</span> Vistorias</a>
+        <a class="nav-link" href="#history" data-page="history"><span class="nav-icon">◷</span> Histórico</a>
+        <a class="nav-link" href="#reports" data-page="reports"><span class="nav-icon">▤</span> Relatórios</a>
+        <a class="nav-link" href="#backup" data-page="backup"><span class="nav-icon">⇅</span> Backup</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>Dados armazenados neste dispositivo</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menuButton" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <div class="breadcrumb"><span>Gestão de frota</span><span class="breadcrumb-separator">/</span><strong id="pageLabel">Visão geral</strong></div>
+        <div class="topbar-right"><span class="local-badge"><span class="status-dot"></span> Ambiente local</span></div>
+      </header>
+
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading">
+          <div><p class="eyebrow">PAINEL DE CONTROLE</p><h1>Visão geral</h1><p class="muted">Acompanhe a situação da sua frota em um só lugar.</p></div>
+          <button class="button button-primary" data-go="vehicles">＋ Cadastrar veículo</button>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Veículos cadastrados</span><span class="stat-icon blue">▣</span></div><strong class="stat-value" id="statVehicles">0</strong><span class="stat-note">Total na sua frota</span></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Vistorias realizadas</span><span class="stat-icon green">✓</span></div><strong class="stat-value" id="statInspections">0</strong><span class="stat-note">Registros realizados</span></article>
+          <article class="stat-card"><div class="stat-top"><span class="stat-label">Com avarias</span><span class="stat-icon orange">!</span></div><strong class="stat-value" id="statIssues">0</strong><span class="stat-note">Vistorias com apontamentos</span></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Acesso rápido</h2><p class="muted">Comece pelas tarefas mais utilizadas.</p></div></div>
+            <div class="quick-actions">
+              <button class="quick-action" data-go="vehicles"><span class="quick-icon">＋</span><span><strong>Novo veículo</strong><small>Adicione um veículo à frota</small></span><span class="action-arrow">›</span></button>
+              <button class="quick-action" data-go="inspections"><span class="quick-icon">✓</span><span><strong>Nova vistoria</strong><small>Registre as condições do veículo</small></span><span class="action-arrow">›</span></button>
+              <button class="quick-action" data-go="backup"><span class="quick-icon">⇅</span><span><strong>Backup dos dados</strong><small>Exporte uma cópia de segurança</small></span><span class="action-arrow">›</span></button>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Atividade recente</h2><p class="muted">Últimos registros no dispositivo.</p></div></div>
+            <div id="recentActivity" class="empty-state compact"><span class="empty-icon">◷</span><strong>Nenhuma atividade ainda</strong><p>Os registros aparecerão aqui conforme você utilizar o sistema.</p></div>
+          </article>
+        </div>
+        <div class="notice"><span class="notice-icon">i</span><p><strong>Importante:</strong> nesta versão, os dados ficam armazenados no navegador e dispositivo utilizados. Faça backups periódicos para evitar perda de informações.</p></div>
+      </section>
+
+      <section class="page" id="page-vehicles">
+        <div class="page-heading"><div><p class="eyebrow">CADASTRO</p><h1>Veículos</h1><p class="muted">Gerencie os veículos vinculados à sua frota.</p></div><button class="button button-primary" id="newVehicleButton">＋ Novo veículo</button></div>
+        <article class="panel">
+          <div class="panel-heading list-heading"><div><h2>Frota cadastrada</h2><p class="muted" id="vehicleCount">0 veículos</p></div><input class="search-input" id="vehicleSearch" type="search" placeholder="Buscar por placa ou modelo" aria-label="Buscar veículos"></div>
+          <div class="table-wrap"><table><thead><tr><th>Veículo</th><th>Placa</th><th>Responsável</th><th>Cadastro</th><th class="align-right">Ações</th></tr></thead><tbody id="vehicleTableBody"><tr><td colspan="5"><div class="empty-state"><span class="empty-icon">▣</span><strong>Sua frota está vazia</strong><p>Cadastre o primeiro veículo para começar.</p></div></td></tr></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-inspections">
+        <div class="page-heading"><div><p class="eyebrow">OPERAÇÃO</p><h1>Vistorias</h1><p class="muted">Registre e acompanhe as condições dos veículos.</p></div></div>
+        <article class="panel placeholder-panel"><span class="placeholder-icon">✓</span><h2>Módulo de vistorias</h2><p>Esta área será implementada na próxima etapa, com identificação do motorista e vistoriador, quilometragem, checklist e registro fotográfico.</p><span class="tag">Planejado para a versão 0.2</span></article>
+      </section>
+
+      <section class="page" id="page-history">
+        <div class="page-heading"><div><p class="eyebrow">CONSULTA</p><h1>Histórico</h1><p class="muted">Consulte as vistorias registradas ao longo do tempo.</p></div></div>
+        <article class="panel placeholder-panel"><span class="placeholder-icon">◷</span><h2>Histórico de vistorias</h2><p>O histórico será habilitado junto com o módulo de vistorias.</p><span class="tag">Planejado para a versão 0.3</span></article>
+      </section>
+
+      <section class="page" id="page-reports">
+        <div class="page-heading"><div><p class="eyebrow">DOCUMENTAÇÃO</p><h1>Relatórios</h1><p class="muted">Gere documentos para consulta e arquivamento.</p></div></div>
+        <article class="panel placeholder-panel"><span class="placeholder-icon">▤</span><h2>Relatórios em PDF</h2><p>Os relatórios serão gerados a partir dos dados das vistorias, com identificação da unidade e possibilidade de incluir a marca da empresa.</p><span class="tag">Planejado para a versão 0.3</span></article>
+      </section>
+
+      <section class="page" id="page-backup">
+        <div class="page-heading"><div><p class="eyebrow">SEGURANÇA DOS DADOS</p><h1>Backup</h1><p class="muted">Exporte seus dados ou restaure uma cópia de segurança.</p></div></div>
+        <article class="panel backup-panel"><div class="backup-symbol">⇅</div><div><h2>Backup e restauração</h2><p class="muted">O backup exporta os dados cadastrados neste navegador para um arquivo JSON. Guarde esse arquivo em um local seguro.</p><div class="button-row"><button class="button button-primary" id="exportBackup">Exportar backup</button><label class="button button-secondary file-button">Restaurar backup<input type="file" id="importBackup" accept="application/json,.json" hidden></label></div><p class="helper-text" id="backupFeedback" role="status"></p></div></article>
+          <div class="notice warning"><span class="notice-icon">!</span><p>A restauração substitui os dados locais atuais pelos dados do arquivo selecionado. Faça um backup antes de restaurar.</p></div>
+      </section>
+
+      <footer class="app-footer"><span>VistoriaFrotas</span><span>Versão 0.1.0</span></footer>
+    </main>
+  </div>
+
+  <dialog class="modal" id="vehicleDialog">
+    <form id="vehicleForm" class="modal-form">
+      <div class="modal-heading"><div><p class="eyebrow">CADASTRO DA FROTA</p><h2>Novo veículo</h2></div><button type="button" class="icon-button close-dialog" aria-label="Fechar">×</button></div>
+      <label>Modelo ou identificação<input name="model" required maxlength="80" placeholder="Ex.: Fiat Strada"></label>
+      <label>Placa<input name="plate" required maxlength="10" placeholder="ABC1D23" autocomplete="off"></label>
+      <label>Motorista ou responsável<input name="responsible" maxlength="80" placeholder="Nome do responsável"></label>
+      <label>Observações<textarea name="notes" rows="3" maxlength="500" placeholder="Informações adicionais (opcional)"></textarea></label>
+      <div class="modal-actions"><button type="button" class="button button-secondary close-dialog">Cancelar</button><button type="submit" class="button button-primary">Salvar veículo</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./assets/js/app.js"></script>
+</body>
+</html>
