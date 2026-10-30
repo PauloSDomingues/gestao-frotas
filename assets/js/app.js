@@ -114,45 +114,150 @@ function setupVehicleForm() {
   });
 }
 
+
 function setupInspections() {
   $("#newInspectionButton").addEventListener("click", openInspectionDialog);
-  $("#closeInspectionDialog").addEventListener("click", () => $("#inspectionDialog").close());
-  $("#cancelInspectionButton").addEventListener("click", () => $("#inspectionDialog").close());
+
+  $("#closeInspectionDialog").addEventListener("click", () => {
+    $("#inspectionDialog").close();
+  });
+
+  $("#cancelInspectionButton").addEventListener("click", () => {
+    $("#inspectionDialog").close();
+  });
+
+  // Identifica quando uma foto é selecionada pela câmera ou galeria.
   $("#checklistContainer").addEventListener("change", async (event) => {
-    const input = event.target.closest("input[type=file][data-photo]");
+    const input = event.target.closest(
+      'input[type="file"][data-photo-camera], input[type="file"][data-photo-gallery]'
+    );
+
     if (!input || !input.files?.[0]) return;
+
+    const photoId = input.dataset.photoCamera || input.dataset.photoGallery;
+
     try {
       const file = input.files[0];
+
       const { resizePhoto } = await import("./modules/inspections.js");
+
+      // Redimensiona e comprime a imagem.
       const dataUrl = await resizePhoto(file);
-      photoMap.set(input.dataset.photo, dataUrl);
-      $(`[data-photo-name="${input.dataset.photo}"]`).textContent = "Foto anexada";
+
+      // Guarda a foto temporariamente até salvar a vistoria.
+      photoMap.set(photoId, dataUrl);
+
+      // Atualiza a identificação da foto.
+      const photoName = $(`[data-photo-name="${photoId}"]`);
+      if (photoName) {
+        photoName.textContent = "Foto anexada";
+      }
+
+      // Exibe a prévia da imagem.
+      const preview = $(`[data-photo-preview="${photoId}"]`);
+      const image = $(`[data-photo-image="${photoId}"]`);
+
+      if (preview && image) {
+        image.src = dataUrl;
+        preview.hidden = false;
+      }
+
       showToast("Foto adicionada ao item.");
-    } catch (error) { showToast(error.message || "Não foi possível carregar a foto."); input.value = ""; }
+
+    } catch (error) {
+      showToast(error.message || "Não foi possível carregar a foto.");
+    } finally {
+      // Permite selecionar novamente o mesmo arquivo.
+      input.value = "";
+    }
   });
+
+  // Remove uma foto sem alterar as observações do item.
+  $("#checklistContainer").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-photo-remove]");
+
+    if (!button) return;
+
+    const photoId = button.dataset.photoRemove;
+
+    // Remove a foto do armazenamento temporário.
+    photoMap.delete(photoId);
+
+    // Limpa a imagem da prévia.
+    const preview = $(`[data-photo-preview="${photoId}"]`);
+    const image = $(`[data-photo-image="${photoId}"]`);
+    const photoName = $(`[data-photo-name="${photoId}"]`);
+
+    if (image) {
+      image.removeAttribute("src");
+    }
+
+    if (preview) {
+      preview.hidden = true;
+    }
+
+    if (photoName) {
+      photoName.textContent = "Nenhuma foto";
+    }
+
+    // Limpa os campos de câmera e galeria.
+    const cameraInput = $(`[data-photo-camera="${photoId}"]`);
+    const galleryInput = $(`[data-photo-gallery="${photoId}"]`);
+
+    if (cameraInput) cameraInput.value = "";
+    if (galleryInput) galleryInput.value = "";
+
+    showToast("Foto removida.");
+  });
+
+  // Salva a vistoria e suas respectivas fotos.
   $("#inspectionForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+
     const submit = event.submitter;
     submit.disabled = true;
+
     try {
       await saveInspection(event.currentTarget, photoMap);
+
       $("#inspectionDialog").close();
-      await refreshInspections(); await refreshDashboard();
+
+      await refreshInspections();
+      await refreshDashboard();
+
       navigate("inspections");
+
       showToast("Vistoria salva com sucesso.");
-    } catch (error) { showToast(error.message || "Não foi possível salvar a vistoria."); }
-    finally { submit.disabled = false; }
+
+    } catch (error) {
+      showToast(error.message || "Não foi possível salvar a vistoria.");
+
+    } finally {
+      submit.disabled = false;
+    }
   });
+
+  // Abre os detalhes de uma vistoria registrada.
   document.body.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-inspection-detail]");
+
     if (!button) return;
-    const inspection = (await listInspections()).find((item) => item.id === button.dataset.inspectionDetail);
+
+    const inspection = (await listInspections()).find(
+      (item) => item.id === button.dataset.inspectionDetail
+    );
+
     if (!inspection) return;
+
     $("#inspectionDetailContent").innerHTML = detailMarkup(inspection);
     $("#inspectionDetailDialog").showModal();
   });
-  $("#closeDetailDialog").addEventListener("click", () => $("#inspectionDetailDialog").close());
+
+  $("#closeDetailDialog").addEventListener("click", () => {
+    $("#inspectionDetailDialog").close();
+  });
 }
+
 
 function setupBackup() {
   $("#exportBackup").addEventListener("click", async () => {
