@@ -74,13 +74,16 @@
       </section>
 
       <section class="page" id="page-inspections">
-        <div class="page-heading"><div><p class="eyebrow">OPERAÇÃO</p><h1>Vistorias</h1><p class="muted">Registre e acompanhe as condições dos veículos.</p></div></div>
-        <article class="panel placeholder-panel"><span class="placeholder-icon">✓</span><h2>Módulo de vistorias</h2><p>Esta área será implementada na próxima etapa, com identificação do motorista e vistoriador, quilometragem, checklist e registro fotográfico.</p><span class="tag">Planejado para a versão 0.2</span></article>
+        <div class="page-heading"><div><p class="eyebrow">OPERAÇÃO</p><h1>Vistorias</h1><p class="muted">Registre as condições dos veículos e documente avarias.</p></div><button class="button button-primary" id="newInspectionButton">＋ Nova vistoria</button></div>
+        <article class="panel">
+          <div class="panel-heading"><div><h2>Registros de vistoria</h2><p class="muted" id="inspectionCount">0 vistorias registradas</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Data</th><th>Veículo</th><th>Motorista</th><th>Vistoriador</th><th>Resultado</th></tr></thead><tbody id="inspectionTableBody"><tr><td colspan="5"><div class="empty-state"><span class="empty-icon">✓</span><strong>Nenhuma vistoria registrada</strong><p>Inicie uma vistoria para gerar o primeiro registro.</p></div></td></tr></tbody></table></div>
+        </article>
       </section>
 
       <section class="page" id="page-history">
-        <div class="page-heading"><div><p class="eyebrow">CONSULTA</p><h1>Histórico</h1><p class="muted">Consulte as vistorias registradas ao longo do tempo.</p></div></div>
-        <article class="panel placeholder-panel"><span class="placeholder-icon">◷</span><h2>Histórico de vistorias</h2><p>O histórico será habilitado junto com o módulo de vistorias.</p><span class="tag">Planejado para a versão 0.3</span></article>
+        <div class="page-heading"><div><p class="eyebrow">CONSULTA</p><h1>Histórico</h1><p class="muted">Consulte os registros realizados na frota.</p></div></div>
+        <article class="panel"><div class="panel-heading"><div><h2>Histórico de vistorias</h2><p class="muted">Todos os registros, do mais recente ao mais antigo.</p></div></div><div id="historyList" class="history-list"><div class="empty-state"><span class="empty-icon">◷</span><strong>Histórico vazio</strong><p>As vistorias concluídas aparecerão aqui.</p></div></div></article>
       </section>
 
       <section class="page" id="page-reports">
@@ -108,6 +111,25 @@
       <div class="modal-actions"><button type="button" class="button button-secondary close-dialog">Cancelar</button><button type="submit" class="button button-primary">Salvar veículo</button></div>
     </form>
   </dialog>
+
+  <dialog class="modal inspection-modal" id="inspectionDialog">
+    <form id="inspectionForm" class="modal-form">
+      <div class="modal-heading"><div><p class="eyebrow">NOVA INSPEÇÃO</p><h2>Registrar vistoria</h2></div><button type="button" class="icon-button" id="closeInspectionDialog" aria-label="Fechar">×</button></div>
+      <div class="form-grid">
+        <label class="full-width">Veículo<select name="vehicleId" id="inspectionVehicle" required><option value="">Selecione um veículo</option></select></label>
+        <label>Motorista<input name="driver" required maxlength="80" placeholder="Nome do motorista"></label>
+        <label>Vistoriador<input name="inspector" required maxlength="80" placeholder="Nome do responsável"></label>
+        <label>Quilometragem (km)<input name="odometer" type="number" min="0" step="1" required placeholder="Ex.: 85420"></label>
+        <label>Data e hora<input name="date" id="inspectionDate" type="datetime-local" required></label>
+        <label class="full-width">Observações gerais<textarea name="generalNotes" rows="2" maxlength="1000" placeholder="Informações adicionais sobre a vistoria"></textarea></label>
+      </div>
+      <div class="checklist-heading"><div><h3>Checklist do veículo</h3><p class="muted">Marque a condição de cada item. Itens não avaliados podem permanecer como não verificados.</p></div><div class="checklist-legend"><span class="legend-ok">Conforme</span><span class="legend-issue">Avaria</span><span class="legend-na">Não verificado</span></div></div>
+      <div id="checklistContainer" class="checklist-container"></div>
+      <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelInspectionButton">Cancelar</button><button type="submit" class="button button-primary">Salvar vistoria</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal detail-modal" id="inspectionDetailDialog"><div class="modal-form"><div class="modal-heading"><div><p class="eyebrow">DETALHES DO REGISTRO</p><h2>Vistoria</h2></div><button type="button" class="icon-button" id="closeDetailDialog" aria-label="Fechar">×</button></div><div id="inspectionDetailContent"></div></div></dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="./assets/js/app.js"></script>

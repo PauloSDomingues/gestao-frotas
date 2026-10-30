@@ -4,14 +4,18 @@ Aplicação web progressiva (PWA) para cadastro e vistoria de veículos. Nome ex
 
 ## Versão atual
 
-**0.1.0**
+**0.2.0**
 
 Esta primeira entrega estabelece a fundação do projeto:
 - Interface responsiva com abordagem mobile-first.
 - Navegação entre os módulos principais.
 - Cadastro, listagem, busca e exclusão de veículos.
 - Persistência local com IndexedDB.
-- Exportação e restauração de backup em JSON.
+- Exportação e restauração de backup em JSON, incluindo fotos anexadas às vistorias.
+- Registro de vistorias com motorista, vistoriador, quilometragem e data.
+- Checklist por categoria com estados Conforme, Avaria e Não verificado.
+- Observações e fotografias por item do checklist.
+- Histórico e consulta detalhada das vistorias.
 - Estrutura inicial de PWA e cache offline.
 
 Os módulos de vistorias, histórico e relatórios estão identificados na interface, mas ainda serão implementados nas próximas etapas.
@@ -87,8 +91,8 @@ gestao-frotas/
 
 ## Próximas etapas
 
-- 0.2: formulário de vistoria, checklist e fotografias.
-- 0.3: histórico, filtros e relatórios PDF.
+- 0.2: concluído. Formulário de vistoria, checklist e fotografias.
+- 0.3: filtros avançados e relatórios PDF.
 - 0.4: aprimoramento do backup, validações e testes em dispositivos.
 - Futuro: configurações por unidade, personalização e sincronização opcional.
 
