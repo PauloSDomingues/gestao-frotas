@@ -11,23 +11,43 @@ export const CHECKLIST = [
 
 export function checklistMarkup() {
   let index = 0;
-  return CHECKLIST.map((group) => `
-    <section class="checklist-group"><h4>${escapeHTML(group.category)}</h4>
-      ${group.items.map((label) => {
-        const id = `item-${index++}`;
-        return `<div class="checklist-item" data-check-item="${id}">
-          <div class="checklist-item-top"><strong>${escapeHTML(label)}</strong>
+
+  return CHECKLIST.map((group) => {
+    const itemsHTML = group.items.map((label) => {
+      const id = `item-${index++}`;
+
+      return `
+        <div class="checklist-item" data-check-item="${id}">
+          <div class="checklist-item-top">
+            <strong>${escapeHTML(label)}</strong>
             <select aria-label="Condição: ${escapeHTML(label)}" data-status="${id}">
-              <option value="not_checked">Não verificado</option><option value="ok">Conforme</option><option value="issue">Avaria</option>
+              <option value="not_checked">Não verificado</option>
+              <option value="ok">Conforme</option>
+              <option value="issue">Avaria</option>
             </select>
           </div>
-          <div class="checklist-extra"><input type="text" maxlength="300" placeholder="Observação (opcional)" aria-label="Observação: ${escapeHTML(label)}" data-note="${id}">
-            <label class="photo-picker">＋ Foto <input type="file" accept="image/*" capture="environment" data-photo="${id}" hidden></label>
+          <div class="checklist-extra">
+            <input type="text" maxlength="300"
+              placeholder="Observação (opcional)"
+              aria-label="Observação: ${escapeHTML(label)}"
+              data-note="${id}">
+            <label class="photo-picker">
+              + Foto
+              <input type="file" accept="image/*"
+                capture="environment" data-photo="${id}" hidden>
+            </label>
             <span class="photo-name" data-photo-name="${id}"></span>
           </div>
-        </div>`;
-      }).join("")}
-    </section>`;
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <section class="checklist-group">
+        <h4>${escapeHTML(group.category)}</h4>
+        ${itemsHTML}
+      </section>
+    `;
   }).join("");
 }
 
