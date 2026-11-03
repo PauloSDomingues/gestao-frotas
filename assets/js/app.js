@@ -4,8 +4,8 @@ import { listVehicles, removeVehicle, renderVehicleRows, saveVehicle } from "./m
 import { checklistMarkup, detailMarkup, historyMarkup, inspectionRowsMarkup, listInspections, saveInspection } from "./modules/inspections.js";
 import { downloadInspectionPDF, shareInspectionPDF } from "./modules/pdf.js";
 
-const pages = ["dashboard", "vehicles", "inspections", "history", "reports", "backup"];
-const pageNames = { dashboard: "Visão geral", vehicles: "Veículos", inspections: "Vistorias", history: "Histórico", reports: "Relatórios", backup: "Backup" };
+const pages = ["dashboard", "vehicles", "inspections", "history", "backup"];
+const pageNames = { dashboard: "Visão geral", vehicles: "Veículos", inspections: "Vistorias", history: "Histórico", backup: "Backup" };
 const $ = (selector) => document.querySelector(selector);
 const toast = $("#toast");
 let toastTimer;
