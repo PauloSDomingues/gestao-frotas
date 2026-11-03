@@ -2,11 +2,11 @@ import { getAll, putRecord } from "../database/database.js";
 import { createId, escapeHTML, formatDate } from "../utils/helpers.js";
 
 export const CHECKLIST = [
-  { category: "Documentação e identificação", items: ["Documento do veículo", "Identificação e placas", "Licenciamento e documentação obrigatória"] },
+  { category: "Documentação e identificação", items: ["Documentação do veículo (CRLV, licenciamento e demais documentos obrigatórios)", "Identificação e placas"] },
   { category: "Condições externas", items: ["Lataria e pintura", "Para-brisa e demais vidros", "Retrovisores, faróis e lanternas", "Portas, fechaduras e limpadores"] },
-  { category: "Pneus e rodas", items: ["Pneus e estepe", "Rodas e fixação"] },
-  { category: "Mecânica e segurança", items: ["Freios", "Direção e suspensão", "Buzina e cintos de segurança", "Painel e indicadores"] },
-  { category: "Equipamentos e materiais", items: ["Macaco, chave de roda e triângulo", "Extintor, quando aplicável", "Ferramentas e equipamentos de trabalho", "EPIs e materiais de segurança"] }
+  { category: "Segurança", items: ["Pneus e estepe", "Freios", "Rodas e fixação", "Buzina e cintos de segurança", "Macaco, chave de roda e triângulo", "Extintor, quando aplicável"] },
+  { category: "Mecânica", items: ["Nível de óleo", "Nível do arrefecimento", "Direção e suspensão", "Painel e indicadores"] },
+  { category: "Equipamentos e materiais", items: ["Ferramentas e equipamentos de trabalho", "EPIs e materiais de segurança"] }
 ];
 
 export function checklistMarkup() {
