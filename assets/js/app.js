@@ -238,6 +238,7 @@ function setupInspections() {
     }
   });
 
+ 
   // Abre os detalhes de uma vistoria registrada.
   document.body.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-inspection-detail]");
@@ -251,75 +252,77 @@ function setupInspections() {
     if (!inspection) return;
 
     $("#inspectionDetailContent").innerHTML = `
-    <div class="report-actions">
-      <button type="button" class="button button-secondary" data-download-inspection-pdf>
-        Baixar PDF
-      </button>
+      <div class="report-actions">
+        <button type="button" class="button button-secondary" data-download-inspection-pdf>
+          Baixar PDF
+        </button>
 
-      <button type="button" class="button button-primary" data-share-inspection-pdf>
-        Enviar pelo WhatsApp
-      </button>
-    </div>
+        <button type="button" class="button button-primary" data-share-inspection-pdf>
+          Enviar pelo WhatsApp
+        </button>
+      </div>
 
-    ${detailMarkup(inspection)}
-  `;
-  
-  $("#inspectionDetailContent").dataset.inspectionId = inspection.id;
-  $("#inspectionDetailDialog").showModal();
-    // Exporta ou compartilha o relatório da vistoria.
-$("#inspectionDetailContent").addEventListener("click", async (event) => {
-  const downloadButton = event.target.closest(
-    "[data-download-inspection-pdf]"
-  );
+      ${detailMarkup(inspection)}
+    `;
 
-  const shareButton = event.target.closest(
-    "[data-share-inspection-pdf]"
-  );
+    $("#inspectionDetailContent").dataset.inspectionId = inspection.id;
 
-  if (!downloadButton && !shareButton) return;
+    $("#inspectionDetailDialog").showModal();
+  });
 
-  const buttons = $("#inspectionDetailContent").querySelectorAll("button");
-  buttons.forEach(button => button.disabled = true);
-
-  try {
-    const inspectionId = $("#inspectionDetailContent").dataset.inspectionId;
-
-    const inspection = (await listInspections()).find(
-      item => item.id === inspectionId
+  // Exporta ou compartilha o relatório da vistoria.
+  $("#inspectionDetailContent").addEventListener("click", async (event) => {
+    const downloadButton = event.target.closest(
+      "[data-download-inspection-pdf]"
     );
 
-    if (!inspection) {
-      throw new Error("Não foi possível localizar a vistoria.");
-    }
+    const shareButton = event.target.closest(
+      "[data-share-inspection-pdf]"
+    );
 
-    if (downloadButton) {
-      await downloadInspectionPDF(inspection);
-      showToast("PDF gerado com sucesso.");
-    }
+    if (!downloadButton && !shareButton) return;
 
-    if (shareButton) {
-      const result = await shareInspectionPDF(inspection);
+    const buttons = $("#inspectionDetailContent").querySelectorAll("button");
+    buttons.forEach(button => button.disabled = true);
 
-      if (result === "shared") {
-        showToast("Relatório preparado para compartilhamento.");
-      } else {
-        showToast("PDF baixado. Anexe o arquivo no WhatsApp.");
+    try {
+      const inspectionId = $("#inspectionDetailContent").dataset.inspectionId;
+
+      const inspection = (await listInspections()).find(
+        item => item.id === inspectionId
+      );
+
+      if (!inspection) {
+        throw new Error("Não foi possível localizar a vistoria.");
       }
+
+      if (downloadButton) {
+        await downloadInspectionPDF(inspection);
+        showToast("PDF gerado com sucesso.");
+      }
+
+      if (shareButton) {
+        const result = await shareInspectionPDF(inspection);
+
+        if (result === "shared") {
+          showToast("Relatório preparado para compartilhamento.");
+        } else {
+          showToast("PDF baixado. Anexe o arquivo no WhatsApp.");
+        }
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        showToast(error.message || "Não foi possível gerar o PDF.");
+      }
+    } finally {
+      buttons.forEach(button => button.disabled = false);
     }
-  } catch (error) {
-    if (error.name !== "AbortError") {
-      showToast(error.message || "Não foi possível gerar o PDF.");
-    }
-  } finally {
-    buttons.forEach(button => button.disabled = false);
-  }
-});
   });
 
   $("#closeDetailDialog").addEventListener("click", () => {
     $("#inspectionDetailDialog").close();
   });
-}
+
 
 
 function setupBackup() {
