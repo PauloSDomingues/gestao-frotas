@@ -90,3 +90,30 @@
 .photo-remove:hover {
   background: #fff3f0;
 }
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.report-actions .button {
+  flex: 1 1 180px;
+  justify-content: center;
+}
+
+.report-actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 480px) {
+  .report-actions {
+    flex-direction: column;
+  }
+
+  .report-actions .button {
+    width: 100%;
+  }
+}
