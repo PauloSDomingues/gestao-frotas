@@ -2,52 +2,57 @@ import { getAll, putRecord } from "../database/database.js";
 import { createId, escapeHTML, formatDate } from "../utils/helpers.js";
 
 export const CHECKLIST = [
-  { category: "Documentação e identificação", items: ["Documento do veículo", "Identificação e placas", "Licenciamento e documentação obrigatória"] },
+  { category: "Documentação e identificação", items: ["Documentação do veículo (CRLV, licenciamento e demais documentos obrigatórios)", "Identificação e placas"] },
   { category: "Condições externas", items: ["Lataria e pintura", "Para-brisa e demais vidros", "Retrovisores, faróis e lanternas", "Portas, fechaduras e limpadores"] },
-  { category: "Pneus e rodas", items: ["Pneus e estepe", "Rodas e fixação"] },
-  { category: "Mecânica e segurança", items: ["Freios", "Direção e suspensão", "Buzina e cintos de segurança", "Painel e indicadores"] },
-  { category: "Equipamentos e materiais", items: ["Macaco, chave de roda e triângulo", "Extintor, quando aplicável", "Ferramentas e equipamentos de trabalho", "EPIs e materiais de segurança"] }
+  { category: "Segurança", items: ["Pneus e estepe", "Freios", "Rodas e fixação", "Buzina e cintos de segurança", "Macaco, chave de roda e triângulo", "Extintor, quando aplicável"] },
+  { category: "Mecânica", items: ["Nível de óleo", "Nível do arrefecimento", "Direção e suspensão", "Painel e indicadores"] },
+  { category: "Equipamentos e materiais", items: ["Ferramentas e equipamentos de trabalho", "EPIs e materiais de segurança"] }
 ];
 
 export function checklistMarkup() {
   let index = 0;
 
-  return CHECKLIST.map((group) => {
-    const itemsHTML = group.items.map((label) => {
-      const id = `item-${index++}`;
+  return CHECKLIST.map(function (group) {
+    const itemsHTML = group.items.map(function (label) {
+      const id = "item-" + index++;
+      const safeLabel = escapeHTML(label);
 
-      return `
-        <div class="checklist-item" data-check-item="${id}">
-          <div class="checklist-item-top">
-            <strong>${escapeHTML(label)}</strong>
-            <select aria-label="Condição: ${escapeHTML(label)}" data-status="${id}">
-              <option value="not_checked">Não verificado</option>
-              <option value="ok">Conforme</option>
-              <option value="issue">Avaria</option>
-            </select>
-          </div>
-          <div class="checklist-extra">
-            <input type="text" maxlength="300"
-              placeholder="Observação (opcional)"
-              aria-label="Observação: ${escapeHTML(label)}"
-              data-note="${id}">
-            <label class="photo-picker">
-              + Foto
-              <input type="file" accept="image/*"
-                capture="environment" data-photo="${id}" hidden>
-            </label>
-            <span class="photo-name" data-photo-name="${id}"></span>
-          </div>
-        </div>
-      `;
+      return [
+        '<div class="checklist-item" data-check-item="' + id + '">',
+          '<div class="checklist-item-top">',
+            '<strong>' + safeLabel + '</strong>',
+            '<select aria-label="Condição: ' + safeLabel + '" data-status="' + id + '">',
+              '<option value="not_checked">Não verificado</option>',
+              '<option value="ok">Conforme</option>',
+              '<option value="issue">Avaria</option>',
+            '</select>',
+          '</div>',
+          '<div class="checklist-extra">',
+            '<input type="text" maxlength="300" placeholder="Observação (opcional)"',
+              ' aria-label="Observação: ' + safeLabel + '" data-note="' + id + '">',
+          '</div>',
+          '<div class="photo-actions">',
+            '<label class="photo-picker">Tirar foto',
+              '<input type="file" accept="image/*" capture="environment" data-photo-camera="' + id + '" hidden>',
+            '</label>',
+            '<label class="photo-picker">Escolher da galeria',
+              '<input type="file" accept="image/*" data-photo-gallery="' + id + '" hidden>',
+            '</label>',
+            '<span class="photo-name" data-photo-name="' + id + '">Nenhuma foto</span>',
+          '</div>',
+          '<div class="photo-preview" data-photo-preview="' + id + '" hidden>',
+            '<img data-photo-image="' + id + '" alt="Prévia da foto de ' + safeLabel + '">',
+            '<div class="photo-preview-actions">',
+              '<span>Prévia da imagem selecionada</span>',
+              '<button type="button" class="photo-remove" data-photo-remove="' + id + '">Remover foto</button>',
+            '</div>',
+          '</div>',
+        '</div>'
+      ].join("");
     }).join("");
 
-    return `
-      <section class="checklist-group">
-        <h4>${escapeHTML(group.category)}</h4>
-        ${itemsHTML}
-      </section>
-    `;
+    return '<section class="checklist-group"><h4>' +
+      escapeHTML(group.category) + '</h4>' + itemsHTML + '</section>';
   }).join("");
 }
 
@@ -56,17 +61,23 @@ export async function listInspections() {
 }
 
 export async function resizePhoto(file) {
-  if (!file.type.startsWith("image/")) throw new Error("Selecione um arquivo de imagem.");
+  if (!file || !file.type.startsWith("image/")) throw new Error("Selecione um arquivo de imagem.");
   if (file.size > 12 * 1024 * 1024) throw new Error("A foto deve ter no máximo 12 MB.");
+  if (!("createImageBitmap" in window)) throw new Error("Este navegador não oferece suporte ao processamento de imagens. Tente outro navegador.");
   const image = await createImageBitmap(file);
-  const maxSide = 1280;
-  const ratio = Math.min(1, maxSide / Math.max(image.width, image.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(image.width * ratio);
-  canvas.height = Math.round(image.height * ratio);
-  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-  image.close();
-  return canvas.toDataURL("image/jpeg", 0.72);
+  try {
+    const maxSide = 1280;
+    const ratio = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.width * ratio));
+    canvas.height = Math.max(1, Math.round(image.height * ratio));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Não foi possível processar a imagem.");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.72);
+  } finally {
+    image.close?.();
+  }
 }
 
 export async function saveInspection(form, photoMap) {
@@ -75,7 +86,6 @@ export async function saveInspection(form, photoMap) {
   const vehicles = await getAll("vehicles");
   const vehicle = vehicles.find((item) => item.id === vehicleId);
   if (!vehicle) throw new Error("Selecione um veículo cadastrado.");
-
   const date = new Date(String(data.get("date")));
   if (Number.isNaN(date.getTime())) throw new Error("Informe uma data válida.");
   const odometer = Number(data.get("odometer"));
@@ -88,17 +98,14 @@ export async function saveInspection(form, photoMap) {
       const id = `item-${index++}`;
       const status = form.querySelector(`[data-status="${id}"]`).value;
       const notes = form.querySelector(`[data-note="${id}"]`).value.trim();
-      const photo = photoMap.get(id) || null;
-      items.push({ category: group.category, label, status, notes, photo });
+      items.push({ category: group.category, label, status, notes, photo: photoMap.get(id) || null });
     }
   }
-
   const inspection = {
     id: createId(), vehicleId, vehicleModel: vehicle.model, vehiclePlate: vehicle.plate,
     driver: String(data.get("driver")).trim(), inspector: String(data.get("inspector")).trim(),
     odometer, date: date.toISOString(), generalNotes: String(data.get("generalNotes") || "").trim(),
-    items, hasIssues: items.some((item) => item.status === "issue"),
-    createdAt: new Date().toISOString()
+    items, hasIssues: items.some((item) => item.status === "issue"), createdAt: new Date().toISOString()
   };
   if (!inspection.driver || !inspection.inspector) throw new Error("Informe o motorista e o vistoriador.");
   await putRecord("inspections", inspection);

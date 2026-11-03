@@ -2,9 +2,10 @@ import { getAll } from "./database/database.js";
 import { exportBackup, importBackup } from "./modules/backup.js";
 import { listVehicles, removeVehicle, renderVehicleRows, saveVehicle } from "./modules/vehicles.js";
 import { checklistMarkup, detailMarkup, historyMarkup, inspectionRowsMarkup, listInspections, saveInspection } from "./modules/inspections.js";
+import { downloadInspectionPDF, shareInspectionPDF } from "./modules/pdf.js";
 
-const pages = ["dashboard", "vehicles", "inspections", "history", "reports", "backup"];
-const pageNames = { dashboard: "Visão geral", vehicles: "Veículos", inspections: "Vistorias", history: "Histórico", reports: "Relatórios", backup: "Backup" };
+const pages = ["dashboard", "vehicles", "inspections", "history", "backup"];
+const pageNames = { dashboard: "Visão geral", vehicles: "Veículos", inspections: "Vistorias", history: "Histórico", backup: "Backup" };
 const $ = (selector) => document.querySelector(selector);
 const toast = $("#toast");
 let toastTimer;
@@ -114,45 +115,215 @@ function setupVehicleForm() {
   });
 }
 
+
 function setupInspections() {
   $("#newInspectionButton").addEventListener("click", openInspectionDialog);
-  $("#closeInspectionDialog").addEventListener("click", () => $("#inspectionDialog").close());
-  $("#cancelInspectionButton").addEventListener("click", () => $("#inspectionDialog").close());
+
+  $("#closeInspectionDialog").addEventListener("click", () => {
+    $("#inspectionDialog").close();
+  });
+
+  $("#cancelInspectionButton").addEventListener("click", () => {
+    $("#inspectionDialog").close();
+  });
+
+  // Identifica quando uma foto é selecionada pela câmera ou galeria.
   $("#checklistContainer").addEventListener("change", async (event) => {
-    const input = event.target.closest("input[type=file][data-photo]");
+    const input = event.target.closest(
+      'input[type="file"][data-photo-camera], input[type="file"][data-photo-gallery]'
+    );
+
     if (!input || !input.files?.[0]) return;
+
+    const photoId = input.dataset.photoCamera || input.dataset.photoGallery;
+
     try {
       const file = input.files[0];
+
       const { resizePhoto } = await import("./modules/inspections.js");
+
+      // Redimensiona e comprime a imagem.
       const dataUrl = await resizePhoto(file);
-      photoMap.set(input.dataset.photo, dataUrl);
-      $(`[data-photo-name="${input.dataset.photo}"]`).textContent = "Foto anexada";
+
+      // Guarda a foto temporariamente até salvar a vistoria.
+      photoMap.set(photoId, dataUrl);
+
+      // Atualiza a identificação da foto.
+      const photoName = $(`[data-photo-name="${photoId}"]`);
+      if (photoName) {
+        photoName.textContent = "Foto anexada";
+      }
+
+      // Exibe a prévia da imagem.
+      const preview = $(`[data-photo-preview="${photoId}"]`);
+      const image = $(`[data-photo-image="${photoId}"]`);
+
+      if (preview && image) {
+        image.src = dataUrl;
+        preview.hidden = false;
+      }
+
       showToast("Foto adicionada ao item.");
-    } catch (error) { showToast(error.message || "Não foi possível carregar a foto."); input.value = ""; }
+
+    } catch (error) {
+      showToast(error.message || "Não foi possível carregar a foto.");
+    } finally {
+      // Permite selecionar novamente o mesmo arquivo.
+      input.value = "";
+    }
   });
+
+  // Remove uma foto sem alterar as observações do item.
+  $("#checklistContainer").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-photo-remove]");
+
+    if (!button) return;
+
+    const photoId = button.dataset.photoRemove;
+
+    // Remove a foto do armazenamento temporário.
+    photoMap.delete(photoId);
+
+    // Limpa a imagem da prévia.
+    const preview = $(`[data-photo-preview="${photoId}"]`);
+    const image = $(`[data-photo-image="${photoId}"]`);
+    const photoName = $(`[data-photo-name="${photoId}"]`);
+
+    if (image) {
+      image.removeAttribute("src");
+    }
+
+    if (preview) {
+      preview.hidden = true;
+    }
+
+    if (photoName) {
+      photoName.textContent = "Nenhuma foto";
+    }
+
+    // Limpa os campos de câmera e galeria.
+    const cameraInput = $(`[data-photo-camera="${photoId}"]`);
+    const galleryInput = $(`[data-photo-gallery="${photoId}"]`);
+
+    if (cameraInput) cameraInput.value = "";
+    if (galleryInput) galleryInput.value = "";
+
+    showToast("Foto removida.");
+  });
+
+  // Salva a vistoria e suas respectivas fotos.
   $("#inspectionForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+
     const submit = event.submitter;
     submit.disabled = true;
+
     try {
       await saveInspection(event.currentTarget, photoMap);
+
       $("#inspectionDialog").close();
-      await refreshInspections(); await refreshDashboard();
+
+      await refreshInspections();
+      await refreshDashboard();
+
       navigate("inspections");
+
       showToast("Vistoria salva com sucesso.");
-    } catch (error) { showToast(error.message || "Não foi possível salvar a vistoria."); }
-    finally { submit.disabled = false; }
+
+    } catch (error) {
+      showToast(error.message || "Não foi possível salvar a vistoria.");
+
+    } finally {
+      submit.disabled = false;
+    }
   });
+
+ 
+  // Abre os detalhes de uma vistoria registrada.
   document.body.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-inspection-detail]");
+
     if (!button) return;
-    const inspection = (await listInspections()).find((item) => item.id === button.dataset.inspectionDetail);
+
+    const inspection = (await listInspections()).find(
+      (item) => item.id === button.dataset.inspectionDetail
+    );
+
     if (!inspection) return;
-    $("#inspectionDetailContent").innerHTML = detailMarkup(inspection);
+
+    $("#inspectionDetailContent").innerHTML = `
+      <div class="report-actions">
+        <button type="button" class="button button-secondary" data-download-inspection-pdf>
+          Baixar PDF
+        </button>
+
+        <button type="button" class="button button-primary" data-share-inspection-pdf>
+          Enviar pelo WhatsApp
+        </button>
+      </div>
+
+      ${detailMarkup(inspection)}
+    `;
+
+    $("#inspectionDetailContent").dataset.inspectionId = inspection.id;
+
     $("#inspectionDetailDialog").showModal();
   });
-  $("#closeDetailDialog").addEventListener("click", () => $("#inspectionDetailDialog").close());
+
+  // Exporta ou compartilha o relatório da vistoria.
+  $("#inspectionDetailContent").addEventListener("click", async (event) => {
+    const downloadButton = event.target.closest(
+      "[data-download-inspection-pdf]"
+    );
+
+    const shareButton = event.target.closest(
+      "[data-share-inspection-pdf]"
+    );
+
+    if (!downloadButton && !shareButton) return;
+
+    const buttons = $("#inspectionDetailContent").querySelectorAll("button");
+    buttons.forEach(button => button.disabled = true);
+
+    try {
+      const inspectionId = $("#inspectionDetailContent").dataset.inspectionId;
+
+      const inspection = (await listInspections()).find(
+        item => item.id === inspectionId
+      );
+
+      if (!inspection) {
+        throw new Error("Não foi possível localizar a vistoria.");
+      }
+
+      if (downloadButton) {
+        await downloadInspectionPDF(inspection);
+        showToast("PDF gerado com sucesso.");
+      }
+
+      if (shareButton) {
+        const result = await shareInspectionPDF(inspection);
+
+        if (result === "shared") {
+          showToast("Relatório preparado para compartilhamento.");
+        } else {
+          showToast("PDF baixado. Anexe o arquivo no WhatsApp.");
+        }
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        showToast(error.message || "Não foi possível gerar o PDF.");
+      }
+    } finally {
+      buttons.forEach(button => button.disabled = false);
+    }
+  });
+
+  $("#closeDetailDialog").addEventListener("click", () => {
+    $("#inspectionDetailDialog").close();
+  });
 }
+
 
 function setupBackup() {
   $("#exportBackup").addEventListener("click", async () => {

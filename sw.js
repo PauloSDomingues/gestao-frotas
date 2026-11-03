@@ -1,28 +1,64 @@
-const CACHE_NAME = "gestao-frotas-v0.2.0";
+const CACHE_NAME = "gestao-frotas-v0.3.1";
+
 const APP_FILES = [
-  "./", "./index.html", "./manifest.json", "./assets/css/style.css",
-  "./assets/js/app.js", "./assets/js/database/database.js",
-  "./assets/js/modules/vehicles.js", "./assets/js/modules/inspections.js",
-  "./assets/js/modules/backup.js", "./assets/js/utils/helpers.js", "./assets/images/icon.svg"
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./assets/css/style.css",
+  "./assets/js/app.js",
+  "./assets/js/database/database.js",
+  "./assets/js/modules/vehicles.js",
+  "./assets/js/modules/inspections.js",
+  "./assets/js/modules/backup.js",
+  "./assets/js/modules/pdf.js",
+  "./assets/js/utils/helpers.js",
+  "./assets/vendor/jspdf.umd.min.js",
+  "./assets/images/icon.svg"
 ];
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES))
+  );
+
   self.skipWaiting();
 });
+
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))));
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    )
+  );
+
   self.clients.claim();
 });
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(caches.match(event.request).then((cached) => {
-    if (cached) return cached;
-    return fetch(event.request).then((response) => {
-      if (response.ok && new URL(event.request.url).origin === self.location.origin) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-      }
-      return response;
-    });
-  }));
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(event.request).then((response) => {
+        if (
+          response.ok &&
+          new URL(event.request.url).origin === self.location.origin
+        ) {
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, copy);
+          });
+        }
+
+        return response;
+      });
+    })
+  );
 });

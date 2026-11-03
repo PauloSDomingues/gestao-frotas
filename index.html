@@ -22,7 +22,6 @@
         <a class="nav-link" href="#vehicles" data-page="vehicles"><span class="nav-icon">▣</span> Veículos</a>
         <a class="nav-link" href="#inspections" data-page="inspections"><span class="nav-icon">✓</span> Vistorias</a>
         <a class="nav-link" href="#history" data-page="history"><span class="nav-icon">◷</span> Histórico</a>
-        <a class="nav-link" href="#reports" data-page="reports"><span class="nav-icon">▤</span> Relatórios</a>
         <a class="nav-link" href="#backup" data-page="backup"><span class="nav-icon">⇅</span> Backup</a>
       </nav>
       <div class="sidebar-footer">
@@ -86,18 +85,13 @@
         <article class="panel"><div class="panel-heading"><div><h2>Histórico de vistorias</h2><p class="muted">Todos os registros, do mais recente ao mais antigo.</p></div></div><div id="historyList" class="history-list"><div class="empty-state"><span class="empty-icon">◷</span><strong>Histórico vazio</strong><p>As vistorias concluídas aparecerão aqui.</p></div></div></article>
       </section>
 
-      <section class="page" id="page-reports">
-        <div class="page-heading"><div><p class="eyebrow">DOCUMENTAÇÃO</p><h1>Relatórios</h1><p class="muted">Gere documentos para consulta e arquivamento.</p></div></div>
-        <article class="panel placeholder-panel"><span class="placeholder-icon">▤</span><h2>Relatórios em PDF</h2><p>Os relatórios serão gerados a partir dos dados das vistorias, com identificação da unidade e possibilidade de incluir a marca da empresa.</p><span class="tag">Planejado para a versão 0.3</span></article>
-      </section>
-
       <section class="page" id="page-backup">
         <div class="page-heading"><div><p class="eyebrow">SEGURANÇA DOS DADOS</p><h1>Backup</h1><p class="muted">Exporte seus dados ou restaure uma cópia de segurança.</p></div></div>
         <article class="panel backup-panel"><div class="backup-symbol">⇅</div><div><h2>Backup e restauração</h2><p class="muted">O backup exporta os dados cadastrados neste navegador para um arquivo JSON. Guarde esse arquivo em um local seguro.</p><div class="button-row"><button class="button button-primary" id="exportBackup">Exportar backup</button><label class="button button-secondary file-button">Restaurar backup<input type="file" id="importBackup" accept="application/json,.json" hidden></label></div><p class="helper-text" id="backupFeedback" role="status"></p></div></article>
           <div class="notice warning"><span class="notice-icon">!</span><p>A restauração substitui os dados locais atuais pelos dados do arquivo selecionado. Faça um backup antes de restaurar.</p></div>
       </section>
 
-      <footer class="app-footer"><span>VistoriaFrotas</span><span>Versão 0.1.0</span></footer>
+      <footer class="app-footer"><span>VistoriaFrotas</span><span>Versão 0.3.0</span></footer>
     </main>
   </div>
 
@@ -132,6 +126,8 @@
   <dialog class="modal detail-modal" id="inspectionDetailDialog"><div class="modal-form"><div class="modal-heading"><div><p class="eyebrow">DETALHES DO REGISTRO</p><h2>Vistoria</h2></div><button type="button" class="icon-button" id="closeDetailDialog" aria-label="Fechar">×</button></div><div id="inspectionDetailContent"></div></div></dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  
+  <script src="./assets/vendor/jspdf.umd.min.js"></script>
   <script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>
