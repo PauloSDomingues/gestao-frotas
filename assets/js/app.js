@@ -2,6 +2,7 @@ import { getAll } from "./database/database.js";
 import { exportBackup, importBackup } from "./modules/backup.js";
 import { listVehicles, removeVehicle, renderVehicleRows, saveVehicle } from "./modules/vehicles.js";
 import { checklistMarkup, detailMarkup, historyMarkup, inspectionRowsMarkup, listInspections, saveInspection } from "./modules/inspections.js";
+import { downloadInspectionPDF, shareInspectionPDF } from "./modules/pdf.js";
 
 const pages = ["dashboard", "vehicles", "inspections", "history", "reports", "backup"];
 const pageNames = { dashboard: "Visão geral", vehicles: "Veículos", inspections: "Vistorias", history: "Histórico", reports: "Relatórios", backup: "Backup" };
@@ -249,8 +250,70 @@ function setupInspections() {
 
     if (!inspection) return;
 
-    $("#inspectionDetailContent").innerHTML = detailMarkup(inspection);
-    $("#inspectionDetailDialog").showModal();
+    $("#inspectionDetailContent").innerHTML = `
+    <div class="report-actions">
+      <button type="button" class="button button-secondary" data-download-inspection-pdf>
+        Baixar PDF
+      </button>
+
+      <button type="button" class="button button-primary" data-share-inspection-pdf>
+        Enviar pelo WhatsApp
+      </button>
+    </div>
+
+    ${detailMarkup(inspection)}
+  `;
+  
+  $("#inspectionDetailContent").dataset.inspectionId = inspection.id;
+  $("#inspectionDetailDialog").showModal();
+    // Exporta ou compartilha o relatório da vistoria.
+$("#inspectionDetailContent").addEventListener("click", async (event) => {
+  const downloadButton = event.target.closest(
+    "[data-download-inspection-pdf]"
+  );
+
+  const shareButton = event.target.closest(
+    "[data-share-inspection-pdf]"
+  );
+
+  if (!downloadButton && !shareButton) return;
+
+  const buttons = $("#inspectionDetailContent").querySelectorAll("button");
+  buttons.forEach(button => button.disabled = true);
+
+  try {
+    const inspectionId = $("#inspectionDetailContent").dataset.inspectionId;
+
+    const inspection = (await listInspections()).find(
+      item => item.id === inspectionId
+    );
+
+    if (!inspection) {
+      throw new Error("Não foi possível localizar a vistoria.");
+    }
+
+    if (downloadButton) {
+      await downloadInspectionPDF(inspection);
+      showToast("PDF gerado com sucesso.");
+    }
+
+    if (shareButton) {
+      const result = await shareInspectionPDF(inspection);
+
+      if (result === "shared") {
+        showToast("Relatório preparado para compartilhamento.");
+      } else {
+        showToast("PDF baixado. Anexe o arquivo no WhatsApp.");
+      }
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      showToast(error.message || "Não foi possível gerar o PDF.");
+    }
+  } finally {
+    buttons.forEach(button => button.disabled = false);
+  }
+});
   });
 
   $("#closeDetailDialog").addEventListener("click", () => {
