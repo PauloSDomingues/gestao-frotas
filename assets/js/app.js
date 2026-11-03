@@ -322,7 +322,7 @@ function setupInspections() {
   $("#closeDetailDialog").addEventListener("click", () => {
     $("#inspectionDetailDialog").close();
   });
-
+}
 
 
 function setupBackup() {
